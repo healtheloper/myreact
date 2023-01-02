@@ -53,6 +53,7 @@ const core = (() => {
       info.$app = $app;
     }
     info.currentStateKey = 0;
+    info.effectDependencyKey = 0;
     info.$rootElement.innerHTML = '';
     info.$rootElement.appendChild(info.$app());
   };
@@ -86,17 +87,21 @@ const core = (() => {
   };
 
   const useEffect = (callback, dependencyList) => {
+    const { effectDependencyKey } = info; // 현재 key 저장
+
     const isNewEffect =
-      Object.values(info.dependencies).length === info.effectDependencyKey;
+      Object.values(info.dependencies).length === effectDependencyKey;
+
     if (isNewEffect) {
-      info.dependencies[info.effectDependencyKey] =
-        JSON.stringify(dependencyList);
+      info.dependencies[effectDependencyKey] = JSON.stringify(dependencyList);
     }
+
     const isUpdate =
-      JSON.stringify(info.dependencies[info.effectDependencyKey]) !==
-      JSON.stringify(dependencyList);
+      info.dependencies[effectDependencyKey] !==
+        JSON.stringify(dependencyList) && dependencyList.length !== 0;
 
     if (isUpdate || isNewEffect) {
+      console.log('update or mount');
       executeAfterRendering(callback);
     }
     info.effectDependencyKey += 1;
