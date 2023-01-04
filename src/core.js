@@ -1,17 +1,5 @@
 import { cloneDeep } from 'lodash';
 
-// const cloneDeep = (object) => {
-//   const target = {};
-//   for (let i in object) {
-//     if (object[i] != null && typeof object[i] === 'object') {
-//       target[i] = cloneDeep(object[i]);
-//     } else {
-//       target[i] = object[i];
-//     }
-//   }
-//   return target;
-// };
-
 const nullOrUndefined = (value) => {
   return value === null || value === undefined;
 };
@@ -41,21 +29,32 @@ const core = (() => {
     if (typeof tag === 'function') {
       return tag({ ...props, children });
     }
-    return { tag, props, children };
+    return { tag, props, children: children.flat() };
   };
 
   const updateAttribute = ($target, newProps = {}, oldProps = {}) => {
     const props = Object.assign({}, newProps, oldProps);
     Object.keys(props).forEach((key) => {
       if (newProps[key]) {
-        $target.setAttribute(key, newProps[key]);
+        if (key.startsWith('on')) {
+          addEvent($target, key, newProps[key]);
+        } else {
+          $target.setAttribute(key, newProps[key]);
+        }
       } else {
-        $target.removeAttribute(key);
+        if (key.startsWith('on')) {
+          const [, eventType] = key.split('on');
+          $target.removeEventListener(eventType.toLowerCase(), oldProps[key]);
+        } else {
+          $target.removeAttribute(key);
+        }
       }
     });
   };
 
   const updateElement = (parent, newNode, oldNode, index = 0) => {
+    // console.log(newNode, oldNode);
+
     if (nullOrUndefined(newNode) && !nullOrUndefined(oldNode)) {
       return parent.removeChild(parent.childNodes[index]);
     }
@@ -68,6 +67,7 @@ const core = (() => {
       if (newNode !== oldNode) {
         return (parent.childNodes[index].textContent = newNode);
       }
+      return;
     }
 
     if (newNode.tag !== oldNode.tag) {
@@ -91,7 +91,7 @@ const core = (() => {
 
   const createElement = ({ tag, props, children }) => {
     const $element = document.createElement(tag);
-    const $children = children.flat();
+    // const $children = children.flat();
 
     if (props) {
       Object.entries(props).forEach(([key, value]) => {
@@ -105,7 +105,7 @@ const core = (() => {
       });
     }
 
-    $children.forEach((childElement) => {
+    children.forEach((childElement) => {
       if (!childElement) return;
       if (typeof childElement === 'string') {
         $element.appendChild(document.createTextNode(childElement));
@@ -124,6 +124,8 @@ const core = (() => {
     info.currentStateKey = 0;
     info.effectDependencyKey = 0;
     const appNode = info.app();
+    console.log('렌더링');
+
     updateElement(info.$rootElement, appNode, info.prevNode);
     info.prevNode = cloneDeep(appNode);
   };

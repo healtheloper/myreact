@@ -2,10 +2,11 @@
 import core from './core';
 
 const Todos = () => {
-  const [todos, setTodos] = core.useState(['밥', '물']);
-  const [newTodo, setNewTodo] = core.useState('');
+  const [todos, setTodos] = core.useState(['밥', '먹', '기'], 'todos');
+  const [newTodo, setNewTodo] = core.useState('', 'todos');
 
   const addTodo = () => {
+    if (newTodo === '') return;
     setTodos([...todos, newTodo]);
     setNewTodo('');
   };
@@ -22,12 +23,14 @@ const Todos = () => {
       <input
         type='text'
         value={newTodo}
-        onChange={(e) => setNewTodo(e.target.value)}
+        onChange={(e) => {
+          setNewTodo(e.target.value);
+        }}
       />
       <button onClick={addTodo}>Add</button>
       <ul>
         {todos.map((todo, index) => (
-          <li key={index}>
+          <li key={`todo-${index}`}>
             {todo}
             <button onClick={() => deleteTodo(index)}>Delete</button>
           </li>

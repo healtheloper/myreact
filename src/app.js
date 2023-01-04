@@ -1,31 +1,28 @@
 /** @jsx core.h */
 import core from './core';
-// import Todos from './todos';
+import Todos from './todos';
 
 const App = () => {
   const [me, setMe] = core.useState('Jin', 'app');
-  // const [you, setYou] = core.useState('Seok');
-
-  // core.useEffect(() => {
-  //   const fetchMe = async () => {
-  //     const response = await fetch(
-  //       'https://jsonplaceholder.typicode.com/users/1'
-  //     );
-  //     const json = await response.json();
-  //     setMe(json.name);
-  //   };
-  //   fetchMe();
-  // }, []);
+  const [you, setYou] = core.useState('Seok', 'app');
 
   core.useEffect(() => {
-    setTimeout(() => {
-      setMe('Park');
-    }, 1000);
+    const fetchMe = async () => {
+      const response = await fetch(
+        'https://jsonplaceholder.typicode.com/users/1'
+      );
+      const json = await response.json();
+      setMe(json.name);
+    };
+    fetchMe();
   }, []);
 
   return (
     <div>
-      <h1>Hello {me}</h1>
+      <h1>
+        Hello {me} & {you}
+      </h1>
+      <Todos />
     </div>
   );
 };
