@@ -1,14 +1,16 @@
-const cloneDeep = (object) => {
-  const target = {};
-  for (let i in object) {
-    if (object[i] != null && typeof object[i] === 'object') {
-      target[i] = cloneDeep(object[i]);
-    } else {
-      target[i] = object[i];
-    }
-  }
-  return target;
-};
+import { cloneDeep } from 'lodash';
+
+// const cloneDeep = (object) => {
+//   const target = {};
+//   for (let i in object) {
+//     if (object[i] != null && typeof object[i] === 'object') {
+//       target[i] = cloneDeep(object[i]);
+//     } else {
+//       target[i] = object[i];
+//     }
+//   }
+//   return target;
+// };
 
 const nullOrUndefined = (value) => {
   return value === null || value === undefined;
@@ -21,7 +23,7 @@ const executeAfterRendering = (callback) => {
 const core = (() => {
   const info = {
     $rootElement: null,
-    appNode: null,
+    app: null,
     prevNode: null,
     currentStateKey: 0,
     effectDependencyKey: 0,
@@ -36,6 +38,9 @@ const core = (() => {
   };
 
   const h = (tag, props, ...children) => {
+    if (typeof tag === 'function') {
+      return tag({ ...props, children });
+    }
     return { tag, props, children };
   };
 
@@ -51,7 +56,6 @@ const core = (() => {
   };
 
   const updateElement = (parent, newNode, oldNode, index = 0) => {
-    // console.log(newNode, oldNode);
     if (nullOrUndefined(newNode) && !nullOrUndefined(oldNode)) {
       return parent.removeChild(parent.childNodes[index]);
     }
@@ -73,18 +77,6 @@ const core = (() => {
       );
     }
 
-    if (
-      typeof newNode.tag === 'function' &&
-      typeof oldNode.tag === 'function'
-    ) {
-      return updateElement(
-        parent,
-        newNode.tag({ ...newNode.props, children: newNode.children }),
-        oldNode.tag({ ...oldNode.props, children: oldNode.children }),
-        index
-      );
-    }
-
     if (newNode.tag === oldNode.tag) {
       const $target = parent.childNodes[index];
       updateAttribute($target, newNode.props, oldNode.props);
@@ -92,32 +84,13 @@ const core = (() => {
       const oldLength = oldNode.children?.length;
       const maxLength = Math.max(newLength, oldLength);
       for (let i = 0; i < maxLength; i++) {
-        const newNodeChild =
-          typeof newNode.children[i].tag === 'function'
-            ? newNode.children[i].tag({
-                ...newNode.props,
-                children: newNode.children,
-              })
-            : newNode.children[i];
-        const oldNodeChild =
-          typeof oldNode.children[i].tag === 'function'
-            ? oldNode.children[i].tag({
-                ...oldNode.props,
-                children: oldNode.children,
-              })
-            : oldNode.children[i];
-        updateElement($target, newNodeChild, oldNodeChild, i);
+        updateElement($target, newNode.children[i], oldNode.children[i], i);
       }
     }
   };
 
   const createElement = ({ tag, props, children }) => {
-    if (typeof tag === 'function') {
-      return createElement(tag({ ...props, children }));
-    }
-
     const $element = document.createElement(tag);
-
     const $children = children.flat();
 
     if (props) {
@@ -144,17 +117,15 @@ const core = (() => {
     return $element;
   };
 
-  const render = (appNode) => {
-    if (!info.appNode) {
-      info.appNode = appNode;
+  const render = (app) => {
+    if (!info.app) {
+      info.app = app;
     }
-    console.log('렌더링');
     info.currentStateKey = 0;
     info.effectDependencyKey = 0;
-    updateElement(info.$rootElement, info.appNode, info.prevNode);
-    info.prevNode = cloneDeep(info.appNode);
-    // info.$rootElement.innerHTML = '';
-    // info.$rootElement.appendChild(info.$app());
+    const appNode = info.app();
+    updateElement(info.$rootElement, appNode, info.prevNode);
+    info.prevNode = cloneDeep(appNode);
   };
 
   const batching = (callback) => {
@@ -180,7 +151,6 @@ const core = (() => {
     const isNewUseState =
       info.state[`${caller}-${currentStateKey}`] === undefined;
 
-    console.log(isNewUseState, info.state, currentStateKey);
     if (isNewUseState) {
       info.state[`${caller}-${currentStateKey}`] = defaultValue;
     }
@@ -188,7 +158,6 @@ const core = (() => {
     const value = info.state[`${caller}-${currentStateKey}`];
 
     const setValue = (newValue) => {
-      console.log('setState');
       info.state[`${caller}-${currentStateKey}`] = newValue;
     };
 

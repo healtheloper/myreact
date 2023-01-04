@@ -18,7 +18,9 @@ const App = () => {
   // }, []);
 
   core.useEffect(() => {
-    setMe('Park');
+    setTimeout(() => {
+      setMe('Park');
+    }, 1000);
   }, []);
 
   return (

@@ -5,4 +5,4 @@ import App from './src/app';
 const $app = document.getElementById('app');
 
 core.createRoot($app);
-core.render(<App />);
+core.render(App);
