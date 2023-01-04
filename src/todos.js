@@ -1,8 +1,8 @@
-/** @jsx core.createElement */
+/** @jsx core.h */
 import core from './core';
 
 const Todos = () => {
-  const [todos, setTodos] = core.useState([]);
+  const [todos, setTodos] = core.useState(['밥', '물']);
   const [newTodo, setNewTodo] = core.useState('');
 
   const addTodo = () => {

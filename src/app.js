@@ -1,30 +1,29 @@
-/** @jsx core.createElement */
+/** @jsx core.h */
 import core from './core';
-import Todos from './todos';
+// import Todos from './todos';
 
 const App = () => {
-  const [me, setMe] = core.useState('Jin');
-  const [you, setYou] = core.useState('Seok');
+  const [me, setMe] = core.useState('Jin', 'app');
+  // const [you, setYou] = core.useState('Seok');
 
-  console.log('렌더링');
+  // core.useEffect(() => {
+  //   const fetchMe = async () => {
+  //     const response = await fetch(
+  //       'https://jsonplaceholder.typicode.com/users/1'
+  //     );
+  //     const json = await response.json();
+  //     setMe(json.name);
+  //   };
+  //   fetchMe();
+  // }, []);
 
   core.useEffect(() => {
-    const fetchMe = async () => {
-      const response = await fetch(
-        'https://jsonplaceholder.typicode.com/users/1'
-      );
-      const json = await response.json();
-      setMe(json.name);
-    };
-    fetchMe();
-  }, [you]);
+    setMe('Park');
+  }, []);
 
   return (
     <div>
-      <h1>
-        Hello {me} & {you}
-      </h1>
-      <Todos />
+      <h1>Hello {me}</h1>
     </div>
   );
 };
