@@ -1,4 +1,15 @@
-import { cloneDeep } from 'lodash';
+const cloneDeep = (obj) => {
+  if (typeof obj !== 'object' || obj === null) {
+    return obj;
+  }
+
+  const cloned = Array.isArray(obj) ? [] : {};
+  Object.keys(obj).forEach((key) => {
+    cloned[key] = cloneDeep(obj[key]);
+  });
+
+  return cloned;
+};
 
 const nullOrUndefined = (value) => {
   return value === null || value === undefined;
