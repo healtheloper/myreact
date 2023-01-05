@@ -25,6 +25,11 @@ const core = (() => {
     $el.addEventListener(eventType.toLowerCase(), callback);
   };
 
+  const removeEvent = ($el, onEventType, callback) => {
+    const [, eventType] = onEventType.split('on');
+    $el.removeEventListener(eventType.toLowerCase(), callback);
+  };
+
   const h = (tag, props, ...children) => {
     if (typeof tag === 'function') {
       return tag({ ...props, children });
@@ -32,19 +37,19 @@ const core = (() => {
     return { tag, props, children: children.flat() };
   };
 
-  const updateAttribute = ($target, newProps = {}, oldProps = {}) => {
+  const updateAttribute = ($target, newProps, oldProps) => {
     const props = Object.assign({}, newProps, oldProps);
     Object.keys(props).forEach((key) => {
       if (newProps[key]) {
         if (key.startsWith('on')) {
+          removeEvent($target, key, oldProps[key]);
           addEvent($target, key, newProps[key]);
         } else {
           $target.setAttribute(key, newProps[key]);
         }
       } else {
         if (key.startsWith('on')) {
-          const [, eventType] = key.split('on');
-          $target.removeEventListener(eventType.toLowerCase(), oldProps[key]);
+          removeEvent($target, key, oldProps[key]);
         } else {
           $target.removeAttribute(key);
         }
@@ -53,8 +58,6 @@ const core = (() => {
   };
 
   const updateElement = (parent, newNode, oldNode, index = 0) => {
-    // console.log(newNode, oldNode);
-
     if (nullOrUndefined(newNode) && !nullOrUndefined(oldNode)) {
       return parent.removeChild(parent.childNodes[index]);
     }
@@ -91,7 +94,6 @@ const core = (() => {
 
   const createElement = ({ tag, props, children }) => {
     const $element = document.createElement(tag);
-    // const $children = children.flat();
 
     if (props) {
       Object.entries(props).forEach(([key, value]) => {
@@ -124,7 +126,6 @@ const core = (() => {
     info.currentStateKey = 0;
     info.effectDependencyKey = 0;
     const appNode = info.app();
-    console.log('렌더링');
 
     updateElement(info.$rootElement, appNode, info.prevNode);
     info.prevNode = cloneDeep(appNode);
